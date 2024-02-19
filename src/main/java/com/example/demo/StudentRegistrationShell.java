@@ -1,5 +1,8 @@
 package com.example.demo;
 
+import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -8,6 +11,7 @@ import org.springframework.shell.standard.ShellOption;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.UUID;
 
 @ShellComponent
@@ -19,6 +23,9 @@ public class StudentRegistrationShell {
     public StudentRegistrationShell(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
+
+    @Value("${createStudentsOnStart}")
+    private boolean createStudentsOnStart;
 
     @ShellMethod(key = "r")
     public void readAllStudents() {
@@ -62,5 +69,30 @@ public class StudentRegistrationShell {
             System.out.println("All students were deleted!");
         } else System.out.println("There are no students here!");
 //        return "All students were deleted!"; Вывод реализован через EventListener
+    }
+
+    @PostConstruct
+    public void createStudentsIfNeeded() {
+        if (createStudentsOnStart) {
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.println("Введите количество студентов:");
+            int count = scanner.nextInt();
+
+            for (int i = 0; i < count; i++) {
+                System.out.println("Введите имя студента:");
+                String firstName = scanner.next();
+
+                System.out.println("Введите фамилию студента:");
+                String lastName = scanner.next();
+
+                System.out.println("Введите возраст студента:");
+                int age = scanner.nextInt();
+
+                UUID id = UUID.randomUUID();
+                Student student = new Student(id, firstName, lastName, age);
+                students.put(id, student);
+            }
+        }
     }
 }
